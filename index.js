@@ -89,23 +89,29 @@ const run = async (
   table_id,
   viewname,
   { statistic, field, text_style },
-  all_state,
+  state,
   extraArgs
 ) => {
-  const id = `map${Math.round(Math.random() * 100000)}`;
-  const { _offset, ...state } = all_state;
   const tbl = await Table.findOne({ id: table_id });
   const fields = await tbl.getFields();
   const qstate = await stateFieldsToWhere({ fields, state });
   const { where, values } = db.mkWhere(qstate);
   const schema = db.getTenantSchemaPrefix();
-  const { rows } = await db.query(
-    `select ${db.sqlsanitize(statistic)}(${db.sqlsanitize(
+
+  let sql;
+  if (statistic.startsWith("Latest ")) {
+    const dateField = statistic.replace("Latest ", "");
+    sql = `select ${db.sqlsanitize(field)} as the_stat from ${schema}"${
+      tbl.name
+    }"
+    where ${dateField}=(select max(${dateField}) from ${schema}"${db.sqlsanitize(
+      tbl.name
+    )}" ${where ? ` and ${where}` : ""})`;
+  } else
+    sql = `select ${db.sqlsanitize(statistic)}(${db.sqlsanitize(
       field
-    )}) as the_stat from ${schema}"${tbl.name}" ${where}`,
-    values
-  );
-  db.sql_log(rows)
+    )}) as the_stat from ${schema}"${tbl.name}" ${where}`;
+  const { rows } = await db.query(sql, values);
   return div({ class: [text_style] }, rows[0].the_stat);
 };
 
