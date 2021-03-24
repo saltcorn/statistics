@@ -50,6 +50,12 @@ const configuration_workflow = () =>
                 },
               },
               {
+                name: "decimal_places",
+                label: "Decimal places",
+                type: "Integer",
+                required: false,
+              },
+              {
                 name: "text_style",
                 label: "Text Style",
                 type: "String",
@@ -68,6 +74,20 @@ const configuration_workflow = () =>
                     { label: "Small", name: "small" },
                   ],
                 },
+              },
+              {
+                name: "pre_text",
+                label: "Text before",
+                sublabel: "For example: currency symbol",
+                type: "String",
+                required: false,
+              },
+              {
+                name: "post_text",
+                label: "Text after",
+                sublabel: "For example: units",
+                type: "String",
+                required: false,
               },
             ],
           });
@@ -88,7 +108,7 @@ const get_state_fields = async (table_id, viewname, { show_view }) => {
 const run = async (
   table_id,
   viewname,
-  { statistic, field, text_style },
+  { statistic, field, text_style, decimal_places, pre_text, post_text },
   state,
   extraArgs
 ) => {
@@ -112,7 +132,17 @@ const run = async (
       field
     )}) as the_stat from ${schema}"${tbl.name}" ${where}`;
   const { rows } = await db.query(sql, values);
-  return div({ class: [text_style] }, rows[0].the_stat);
+  const the_stat = rows[0].the_stat;
+  const show_stat =
+    typeof decimal_places === "undefined"
+      ? the_stat
+      : (+the_stat).toFixed(decimal_places);
+  return div(
+    { class: [text_style] },
+    pre_text || "",
+    show_stat,
+    post_text || ""
+  );
 };
 
 module.exports = {
