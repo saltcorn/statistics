@@ -121,16 +121,16 @@ const run = async (
   let sql;
   if (statistic.startsWith("Latest ")) {
     const dateField = statistic.replace("Latest ", "");
-    sql = `select ${db.sqlsanitize(field)} as the_stat from ${schema}"${
-      tbl.name
-    }"
+    sql = `select ${db.sqlsanitize(
+      field
+    )} as the_stat from ${schema}"${db.sqlsanitize(tbl.name)}"
     where ${dateField}=(select max(${dateField}) from ${schema}"${db.sqlsanitize(
       tbl.name
     )}" ${where ? ` and ${where}` : ""})`;
   } else
     sql = `select ${db.sqlsanitize(statistic)}(${db.sqlsanitize(
       field
-    )}) as the_stat from ${schema}"${tbl.name}" ${where}`;
+    )}) as the_stat from ${schema}"${db.sqlsanitize(tbl.name)}" ${where}`;
   const { rows } = await db.query(sql, values);
   const the_stat = rows[0].the_stat;
   const show_stat =
