@@ -23,7 +23,7 @@ const configuration_workflow = () =>
         form: async (context) => {
           const table = await Table.findOne({ id: context.table_id });
           const fields = await table.getFields();
-          const statOptions = ["Count", "Avg", "Sum", "Max", "Min"];
+          const statOptions = ["Count", "Count distinct", "Avg", "Sum", "Max", "Min"];
           fields.forEach((f) => {
             if (f.type && f.type.name === "Date") {
               statOptions.push(`Latest ${f.name}`);
@@ -104,7 +104,15 @@ const get_state_fields = async (table_id, viewname, { show_view }) => {
     return sf;
   });
 };
-
+const statisticOnField = (statistic, field) => {
+  if (statistic === "Count distinct")
+    return `count(distinct ${db.sqlsanitize(
+      field
+    )})`;
+  return `${db.sqlsanitize(statistic)}(${db.sqlsanitize(
+    field
+  )})`;
+}
 const run = async (
   table_id,
   viewname,
@@ -118,6 +126,8 @@ const run = async (
   const { where, values } = db.mkWhere(qstate);
   const schema = db.getTenantSchemaPrefix();
 
+
+
   let sql;
   if (statistic.startsWith("Latest ")) {
     const dateField = statistic.replace("Latest ", "");
@@ -128,9 +138,7 @@ const run = async (
       tbl.name
     )}" ${where ? ` and ${where}` : ""})`;
   } else
-    sql = `select ${db.sqlsanitize(statistic)}(${db.sqlsanitize(
-      field
-    )}) as the_stat from ${schema}"${db.sqlsanitize(tbl.name)}" ${where}`;
+    sql = `select ${statisticOnField(statistic, field)} as the_stat from ${schema}"${db.sqlsanitize(tbl.name)}" ${where}`;
   const { rows } = await db.query(sql, values);
   const the_stat = rows[0].the_stat;
   const show_stat =
