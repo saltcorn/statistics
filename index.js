@@ -12,8 +12,11 @@ const Workflow = require("@saltcorn/data/models/workflow");
 const Table = require("@saltcorn/data/models/table");
 const Form = require("@saltcorn/data/models/form");
 const Field = require("@saltcorn/data/models/field");
+const { jsexprToWhere } = require("@saltcorn/data/models/expression");
+
 const db = require("@saltcorn/data/db");
 const { stateFieldsToWhere } = require("@saltcorn/data/plugin-helper");
+const { mergeIntoWhere } = require("@saltcorn/data/utils");
 
 const configuration_workflow = () =>
   new Workflow({
@@ -48,6 +51,14 @@ const configuration_workflow = () =>
                 attributes: {
                   options: fields.map((f) => f.name).join(),
                 },
+              },
+              {
+                name: "where_fml",
+                label: ("Where"),
+                sublabel: ("Formula"),
+                class: "validate-expression",
+                type: "String",
+                required: false,
               },
               {
                 name: "decimal_places",
@@ -116,17 +127,18 @@ const statisticOnField = (statistic, field) => {
 const run = async (
   table_id,
   viewname,
-  { statistic, field, text_style, decimal_places, pre_text, post_text },
+  { statistic, field, text_style, decimal_places, pre_text, post_text, where_fml },
   state,
   extraArgs
 ) => {
   const tbl = await Table.findOne({ id: table_id });
   const fields = await tbl.getFields();
-  const qstate = await stateFieldsToWhere({ fields, state });
+  const { ...qstate } = await stateFieldsToWhere({ fields, state });
+  mergeIntoWhere(qstate, jsexprToWhere(where_fml))
   const { where, values } = db.mkWhere(qstate);
+
+
   const schema = db.getTenantSchemaPrefix();
-
-
 
   let sql;
   if (statistic.startsWith("Latest ")) {
@@ -139,6 +151,8 @@ const run = async (
     )}" ${where ? ` and ${where}` : ""})`;
   } else
     sql = `select ${statisticOnField(statistic, field)} as the_stat from ${schema}"${db.sqlsanitize(tbl.name)}" ${where}`;
+
+
   const { rows } = await db.query(sql, values);
   const the_stat = rows[0].the_stat;
   const show_stat =
