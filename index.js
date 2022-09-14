@@ -12,7 +12,7 @@ const Workflow = require("@saltcorn/data/models/workflow");
 const Table = require("@saltcorn/data/models/table");
 const Form = require("@saltcorn/data/models/form");
 const Field = require("@saltcorn/data/models/field");
-const { jsexprToWhere } = require("@saltcorn/data/models/expression");
+const { jsexprToWhere, jsexprToSQL } = require("@saltcorn/data/models/expression");
 
 const db = require("@saltcorn/data/db");
 const { stateFieldsToWhere } = require("@saltcorn/data/plugin-helper");
@@ -32,6 +32,9 @@ const configuration_workflow = () =>
               statOptions.push(`Latest ${f.name}`);
             }
           });
+          const fieldOptions = fields.map((f) => f.name)
+          if (jsexprToSQL)
+            fieldOptions.push("Formula")
           return new Form({
             fields: [
               {
@@ -49,8 +52,16 @@ const configuration_workflow = () =>
                 type: "String",
                 required: true,
                 attributes: {
-                  options: fields.map((f) => f.name).join(),
+                  options: fieldOptions
                 },
+              },
+              {
+                name: "value_fml",
+                label: ("Value Formula"),
+                class: "validate-expression",
+                type: "String",
+                required: false,
+                showIf: { field: "Formula" }
               },
               {
                 name: "where_fml",
@@ -117,17 +128,13 @@ const get_state_fields = async (table_id, viewname, { show_view }) => {
 };
 const statisticOnField = (statistic, field) => {
   if (statistic === "Count distinct")
-    return `count(distinct ${db.sqlsanitize(
-      field
-    )})`;
-  return `${db.sqlsanitize(statistic)}(${db.sqlsanitize(
-    field
-  )})`;
+    return `count(distinct ${field})`;
+  return `${db.sqlsanitize(statistic)}(${field})`;
 }
 const run = async (
   table_id,
   viewname,
-  { statistic, field, text_style, decimal_places, pre_text, post_text, where_fml },
+  { statistic, field, text_style, decimal_places, pre_text, post_text, where_fml, value_fml },
   state,
   extraArgs
 ) => {
@@ -139,19 +146,16 @@ const run = async (
 
 
   const schema = db.getTenantSchemaPrefix();
-
+  const fieldExpr = field === "Formula" ? jsexprToSQL(value_fml) : db.sqlsanitize(field)
   let sql;
   if (statistic.startsWith("Latest ")) {
     const dateField = statistic.replace("Latest ", "");
-    sql = `select ${db.sqlsanitize(
-      field
-    )} as the_stat from ${schema}"${db.sqlsanitize(tbl.name)}"
+    sql = `select ${fieldExpr} as the_stat from ${schema}"${db.sqlsanitize(tbl.name)}"
     where ${dateField}=(select max(${dateField}) from ${schema}"${db.sqlsanitize(
       tbl.name
     )}" ${where ? ` and ${where}` : ""})`;
   } else
-    sql = `select ${statisticOnField(statistic, field)} as the_stat from ${schema}"${db.sqlsanitize(tbl.name)}" ${where}`;
-
+    sql = `select ${statisticOnField(statistic, fieldExpr)} as the_stat from ${schema}"${db.sqlsanitize(tbl.name)}" ${where}`;
 
   const { rows } = await db.query(sql, values);
   const the_stat = rows[0].the_stat;
