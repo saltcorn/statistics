@@ -17,6 +17,8 @@ const { jsexprToWhere, jsexprToSQL } = require("@saltcorn/data/models/expression
 const db = require("@saltcorn/data/db");
 const { stateFieldsToWhere } = require("@saltcorn/data/plugin-helper");
 const { mergeIntoWhere } = require("@saltcorn/data/utils");
+const { localeDate, localeDateTime } = require("@saltcorn/markup");
+
 
 const configuration_workflow = () =>
   new Workflow({
@@ -160,9 +162,11 @@ const run = async (
   const { rows } = await db.query(sql, values);
   const the_stat = rows[0].the_stat;
   const show_stat =
-    typeof decimal_places === "undefined"
-      ? the_stat
-      : (+the_stat).toFixed(decimal_places);
+    the_stat instanceof Date
+      ? localeDateTime(the_stat)
+      : typeof decimal_places === "undefined"
+        ? the_stat
+        : (+the_stat).toFixed(decimal_places);
   return div(
     { class: [text_style] },
     pre_text || "",
