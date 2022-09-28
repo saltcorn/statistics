@@ -1,6 +1,7 @@
 const {
   input,
   div,
+  span,
   text,
   script,
   domReady,
@@ -170,7 +171,7 @@ const run = async (
   return div(
     { class: [text_style] },
     pre_text || "",
-    show_stat,
+    span({ class: viewname }, show_stat),
     post_text || ""
   );
 };
