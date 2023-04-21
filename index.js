@@ -118,7 +118,7 @@ const configuration_workflow = () =>
               {
                 name: "js_format",
                 label: "Formating with JS",
-                sublabel: "For example: moment(data).format('DD-MM-YYYY')",
+                sublabel: "Best Examples: moment( show_stat ).format('DD-MM-YYYY')   ----  Intl.NumberFormat('es-AR', {    style: 'currency',    currency: 'ARS'}).format( show_stat ) ---- show_stat * 1.5" ,
                 type: "String",
                 required: false,
               },
