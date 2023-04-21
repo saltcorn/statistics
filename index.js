@@ -114,6 +114,13 @@ const configuration_workflow = () =>
                 type: "String",
                 required: false,
               },
+              {
+                name: "js_format",
+                label: "Formating with JS",
+                sublabel: "For example: moment(data).format('DD-MM-YYYY')",
+                type: "String",
+                required: false,
+              },
             ],
           });
         },
@@ -137,7 +144,7 @@ const statisticOnField = (statistic, field) => {
 const run = async (
   table_id,
   viewname,
-  { statistic, field, text_style, decimal_places, pre_text, post_text, where_fml, value_fml },
+  { statistic, field, text_style, decimal_places, pre_text, post_text, where_fml, value_fml, js_format },
   state,
   extraArgs
 ) => {
@@ -171,7 +178,7 @@ const run = async (
   return div(
     { class: [text_style] },
     pre_text || "",
-    span({ class: viewname }, show_stat),
+    span({ class: viewname }, js_format? eval(js_format) : show_stat),
     post_text || ""
   );
 };
