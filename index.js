@@ -8,6 +8,7 @@ const {
   style,
   button,
 } = require("@saltcorn/markup/tags");
+const moment = require("moment");
 const View = require("@saltcorn/data/models/view");
 const Workflow = require("@saltcorn/data/models/workflow");
 const Table = require("@saltcorn/data/models/table");
@@ -114,6 +115,13 @@ const configuration_workflow = () =>
                 type: "String",
                 required: false,
               },
+              {
+                name: "js_format",
+                label: "Formating with JS",
+                sublabel: "Best Examples: moment( show_stat ).format('DD-MM-YYYY')   ----  Intl.NumberFormat('es-AR', {    style: 'currency',    currency: 'ARS'}).format( show_stat ) ---- show_stat * 1.5" ,
+                type: "String",
+                required: false,
+              },
             ],
           });
         },
@@ -137,7 +145,7 @@ const statisticOnField = (statistic, field) => {
 const run = async (
   table_id,
   viewname,
-  { statistic, field, text_style, decimal_places, pre_text, post_text, where_fml, value_fml },
+  { statistic, field, text_style, decimal_places, pre_text, post_text, where_fml, value_fml, js_format },
   state,
   extraArgs
 ) => {
@@ -171,7 +179,7 @@ const run = async (
   return div(
     { class: [text_style] },
     pre_text || "",
-    span({ class: viewname }, show_stat),
+    span({ class: viewname }, js_format? eval(js_format) : show_stat),
     post_text || ""
   );
 };
