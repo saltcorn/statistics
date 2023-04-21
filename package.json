@@ -1,5 +1,5 @@
 {
-  "name": "@gian/statistics",
+  "name": "@saltcorn/statistics",
   "version": "0.1.6",
   "description": "Statistics about tables",
   "main": "index.js",
@@ -12,7 +12,7 @@
   "devDependencies": {
     "jest": "^25.1.0"
   },
-  "repository": "github:gianlucafiore/statistics",
+  "repository": "github:saltcorn/statistics",
   "jest": {
     "testEnvironment": "node"
   },
