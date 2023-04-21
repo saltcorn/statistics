@@ -8,6 +8,7 @@ const {
   style,
   button,
 } = require("@saltcorn/markup/tags");
+const moment = require("moment");
 const View = require("@saltcorn/data/models/view");
 const Workflow = require("@saltcorn/data/models/workflow");
 const Table = require("@saltcorn/data/models/table");
