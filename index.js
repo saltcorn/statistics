@@ -142,21 +142,10 @@ const statisticOnField = (statistic, field) => {
   if (statistic === "Count distinct") return `count(distinct ${field})`;
   return `${db.sqlsanitize(statistic)}(${field})`;
 };
-const run = async (
+const getStatisticsImpl = async (
   table_id,
-  viewname,
-  {
-    statistic,
-    field,
-    text_style,
-    decimal_places,
-    pre_text,
-    post_text,
-    where_fml,
-    value_fml,
-  },
-  state,
-  extraArgs
+  { statistic, field, where_fml, value_fml },
+  state
 ) => {
   const tbl = await Table.findOne({ id: table_id });
   const fields = await tbl.getFields();
@@ -183,6 +172,33 @@ const run = async (
     )} as the_stat from ${schema}"${db.sqlsanitize(tbl.name)}" ${where}`;
 
   const { rows } = await db.query(sql, values);
+  return rows;
+};
+
+const run = async (
+  table_id,
+  viewname,
+  {
+    statistic,
+    field,
+    text_style,
+    decimal_places,
+    pre_text,
+    post_text,
+    where_fml,
+    value_fml,
+  },
+  state,
+  extraArgs,
+  queriesObj
+) => {
+  const { rows } = queriesObj?.statistics_query
+    ? await queriesObj.statistics_query(state)
+    : await getStatisticsImpl(
+        table_id,
+        { statistic, field, where_fml, value_fml },
+        state
+      );
   const the_stat = rows[0].the_stat;
   const show_stat =
     the_stat instanceof Date
@@ -207,6 +223,18 @@ module.exports = {
       get_state_fields,
       configuration_workflow,
       run,
+      queries: ({
+        table_id,
+        configuration: { statistic, field, where_fml, value_fml },
+      }) => ({
+        async statistics_query(state) {
+          return await getStatisticsImpl(
+            table_id,
+            { statistic, field, where_fml, value_fml },
+            state
+          );
+        },
+      }),
     },
   ],
 };
