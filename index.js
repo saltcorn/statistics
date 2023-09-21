@@ -192,7 +192,7 @@ const run = async (
   extraArgs,
   queriesObj
 ) => {
-  const { rows } = queriesObj?.statistics_query
+  const rows = queriesObj?.statistics_query
     ? await queriesObj.statistics_query(state)
     : await getStatisticsImpl(
         table_id,
