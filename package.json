@@ -1,6 +1,6 @@
 {
   "name": "@saltcorn/statistics",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Statistics about tables",
   "main": "index.js",
   "dependencies": {
