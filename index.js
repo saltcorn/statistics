@@ -19,6 +19,8 @@ const {
 } = require("@saltcorn/data/models/expression");
 
 const db = require("@saltcorn/data/db");
+const { getState } = require("@saltcorn/data/db/state");
+
 const { stateFieldsToWhere } = require("@saltcorn/data/plugin-helper");
 const { mergeIntoWhere } = require("@saltcorn/data/utils");
 const { localeDate, localeDateTime } = require("@saltcorn/markup");
@@ -46,6 +48,24 @@ const configuration_workflow = () =>
           });
           const fieldOptions = fields.map((f) => f.name);
           if (jsexprToSQL) fieldOptions.push("Formula");
+          const floatFVs = getState().types.Float.fieldviews;
+          const field_view_options = Object.entries(floatFVs)
+            .filter(([k, v]) => !v.isEdit && !v.isFilter)
+            .map(([k, v]) => k);
+          const fvConfigFields = [];
+          for (const fvnm of field_view_options) {
+            const cfgflds = floatFVs[fvnm].configFields || [];
+
+            const flds =
+              typeof cfgflds === "function"
+                ? cfgflds({ attributes: {} }) // a fake field
+                : cfgflds;
+            console.log({ fvnm, flds });
+            flds.forEach((fld) => {
+              fvConfigFields.push({ ...fld, showIf: { fieldview: fvnm } });
+            });
+          }
+
           return new Form({
             fields: [
               {
@@ -66,6 +86,7 @@ const configuration_workflow = () =>
                   options: fieldOptions,
                 },
               },
+
               {
                 name: "value_fml",
                 label: "Value Formula",
@@ -74,6 +95,16 @@ const configuration_workflow = () =>
                 required: false,
                 showIf: { field: "Formula" },
               },
+              {
+                name: "fieldview",
+                label: "Field view",
+                type: "String",
+                required: false,
+                attributes: {
+                  options: field_view_options,
+                },
+              },
+              ...fvConfigFields,
               {
                 name: "where_fml",
                 label: "Where",
@@ -182,14 +213,16 @@ const run = async (
     statistic,
     field,
     text_style,
+    fieldview,
     decimal_places,
     pre_text,
     post_text,
     where_fml,
     value_fml,
+    ...fvOpts
   },
   state,
-  extraArgs,
+  { req },
   queriesObj
 ) => {
   const rows = queriesObj?.statistics_query
@@ -200,6 +233,11 @@ const run = async (
         state
       );
   const the_stat = rows[0].the_stat;
+
+  if (fieldview) {
+    const fv = getState().types.Float.fieldviews[fieldview];
+    return fv.run(the_stat, req, fvOpts);
+  }
   const show_stat =
     the_stat instanceof Date
       ? localeDateTime(the_stat)
