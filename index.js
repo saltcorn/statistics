@@ -60,7 +60,6 @@ const configuration_workflow = () =>
               typeof cfgflds === "function"
                 ? cfgflds({ attributes: {} }) // a fake field
                 : cfgflds;
-            console.log({ fvnm, flds });
             flds.forEach((fld) => {
               fvConfigFields.push({ ...fld, showIf: { fieldview: fvnm } });
             });
