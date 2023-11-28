@@ -118,6 +118,7 @@ const configuration_workflow = () =>
                 label: "Decimal places",
                 type: "Integer",
                 required: false,
+                showIf: { fieldview: "" },
               },
               {
                 name: "text_style",
