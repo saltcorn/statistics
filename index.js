@@ -60,6 +60,7 @@ const configuration_workflow = () =>
               typeof cfgflds === "function"
                 ? cfgflds({ attributes: {} }) // a fake field
                 : cfgflds;
+            //console.log({ fvnm, flds });
             flds.forEach((fld) => {
               fvConfigFields.push({ ...fld, showIf: { fieldview: fvnm } });
             });
@@ -234,9 +235,17 @@ const run = async (
       );
   const the_stat = rows[0].the_stat;
 
+  const wrapper = (t) =>
+    div(
+      { class: [text_style] },
+      pre_text || "",
+      span({ class: viewname }, t),
+      post_text || ""
+    );
+
   if (fieldview) {
     const fv = getState().types.Float.fieldviews[fieldview];
-    return fv.run(the_stat, req, fvOpts);
+    return wrapper(fv.run(the_stat, req, fvOpts));
   }
   const show_stat =
     the_stat instanceof Date
@@ -244,12 +253,7 @@ const run = async (
       : typeof decimal_places === "undefined"
       ? the_stat
       : (+the_stat).toFixed(decimal_places);
-  return div(
-    { class: [text_style] },
-    pre_text || "",
-    span({ class: viewname }, show_stat),
-    post_text || ""
-  );
+  return wrapper(show_stat);
 };
 
 module.exports = {
