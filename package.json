@@ -1,5 +1,5 @@
 {
-  "name": "@saltcorn/statistics",
+  "name": "@gianlucafiore/statistics",
   "version": "0.1.6",
   "description": "Statistics about tables",
   "main": "index.js",
