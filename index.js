@@ -177,12 +177,13 @@ const statisticOnField = (statistic, field) => {
 const getStatisticsImpl = async (
   table_id,
   { statistic, field, where_fml, value_fml },
-  state
+  state,
+  req
 ) => {
   const tbl = await Table.findOne({ id: table_id });
   const fields = await tbl.getFields();
   const { ...qstate } = await stateFieldsToWhere({ fields, state });
-  mergeIntoWhere(qstate, jsexprToWhere(where_fml));
+  mergeIntoWhere(qstate, jsexprToWhere(where_fml, { user: req.user }));
   const { where, values } = db.mkWhere(qstate);
 
   const schema = db.getTenantSchemaPrefix();
@@ -231,7 +232,8 @@ const run = async (
     : await getStatisticsImpl(
         table_id,
         { statistic, field, where_fml, value_fml },
-        state
+        state,
+        req
       );
   const the_stat = rows[0].the_stat;
 
@@ -268,12 +270,14 @@ module.exports = {
       queries: ({
         table_id,
         configuration: { statistic, field, where_fml, value_fml },
+        req,
       }) => ({
         async statistics_query(state) {
           return await getStatisticsImpl(
             table_id,
             { statistic, field, where_fml, value_fml },
-            state
+            state,
+            req
           );
         },
       }),
