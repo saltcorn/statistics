@@ -235,7 +235,8 @@ const run = async (
         state,
         req
       );
-  const the_stat = rows[0].the_stat;
+  let the_stat = rows[0].the_stat;
+  if (the_stat === null && statistic == "Sum") the_stat = 0;
 
   const wrapper = (t) =>
     div(
