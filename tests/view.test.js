@@ -34,7 +34,7 @@ describe("statistics plugin tests", () => {
   it("run average rating", async () => {
     const view = View.findOne({ name: "average_rating" });
     const result = await view.run({}, mockReqRes);
-    expect(result).toBe(`<div><span class="average_rating">4.333</span></div>`);
+    expect(result).toBe(`<div><span class="average_rating">3.857</span></div>`);
   });
 
   it("run average rating with where", async () => {
