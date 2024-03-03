@@ -180,10 +180,21 @@ const getStatisticsImpl = async (
   state,
   req
 ) => {
+  if (!field || !statistic) return "";
   const tbl = await Table.findOne({ id: table_id });
   const fields = await tbl.getFields();
   const { ...qstate } = await stateFieldsToWhere({ fields, state });
   mergeIntoWhere(qstate, jsexprToWhere(where_fml, { user: req.user }));
+
+  if (tbl.aggregationQuery) {
+    const aggRes = await tbl.aggregationQuery(
+      {
+        the_stat: { field, aggregate: statistic },
+      },
+      qstate
+    );
+    return [aggRes];
+  }
   const { where, values } = db.mkWhere(qstate);
 
   const schema = db.getTenantSchemaPrefix();
