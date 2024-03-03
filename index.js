@@ -194,7 +194,7 @@ const getStatisticsImpl = async (
       {
         the_stat,
       },
-      qstate
+      { where: qstate }
     );
     return [aggRes];
   }
