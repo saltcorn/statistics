@@ -186,10 +186,13 @@ const getStatisticsImpl = async (
   const { ...qstate } = await stateFieldsToWhere({ fields, state });
   mergeIntoWhere(qstate, jsexprToWhere(where_fml, { user: req.user }));
 
-  if (tbl.aggregationQuery && field !== "Formula") {
+  if (tbl.aggregationQuery) {
+    const the_stat = { aggregate: statistic };
+    if (field !== "Formula") the_stat.field = field;
+    else the_stat.valueFormula = value_fml;
     const aggRes = await tbl.aggregationQuery(
       {
-        the_stat: { field, aggregate: statistic },
+        the_stat,
       },
       qstate
     );
