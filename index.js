@@ -171,8 +171,8 @@ const get_state_fields = async (table_id, viewname, { show_view }) => {
   });
 };
 const statisticOnField = (statistic, field) => {
-  if (statistic === "Count distinct") return `count(distinct "${field}")`;
-  return `${db.sqlsanitize(statistic)}("${field}")`;
+  if (statistic === "Count distinct") return `count(distinct ${field})`;
+  return `${db.sqlsanitize(statistic)}(${field})`;
 };
 const getStatisticsImpl = async (
   table_id,
