@@ -171,8 +171,8 @@ const get_state_fields = async (table_id, viewname, { show_view }) => {
   });
 };
 const statisticOnField = (statistic, field) => {
-  if (statistic === "Count distinct") return `count(distinct ${field})`;
-  return `${db.sqlsanitize(statistic)}(${field})`;
+  if (statistic === "Count distinct") return `count(distinct "${field}")`;
+  return `${db.sqlsanitize(statistic)}("${field}")`;
 };
 const getStatisticsImpl = async (
   table_id,
@@ -188,14 +188,14 @@ const getStatisticsImpl = async (
 
   const schema = db.getTenantSchemaPrefix();
   const fieldExpr =
-    field === "Formula" ? jsexprToSQL(value_fml) : db.sqlsanitize(field);
+    field === "Formula" ? jsexprToSQL(value_fml) : `"${db.sqlsanitize(field)}"`;
   let sql;
   if (statistic.startsWith("Latest ")) {
     const dateField = statistic.replace("Latest ", "");
     sql = `select ${fieldExpr} as the_stat from ${schema}"${db.sqlsanitize(
       tbl.name
     )}"
-    where ${dateField}=(select max(${dateField}) from ${schema}"${db.sqlsanitize(
+    where "${dateField}"=(select max("${dateField}") from ${schema}"${db.sqlsanitize(
       tbl.name
     )}" ${where ? ` and ${where}` : ""})`;
   } else
