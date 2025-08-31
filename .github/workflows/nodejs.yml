@@ -1,10 +1,4 @@
-# This workflow installs saltcorn from GitHub and runs the plugin tests
-
-# There seems to be a problem when saltcorn is installed from npm and jest runs in the node_modules directory
-# when we update jest to:
-# https://github.com/jestjs/jest/issues/11781#issuecomment-1050262337
-# we can try again with
-# https://github.com/jestjs/jest/pull/11084
+# This workflow installs saltcorn from npm and runs the plugin tests.
 
 name: Node.js CI
 
@@ -41,19 +35,28 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: "22.x"
-      - run: cd ../ && git clone https://github.com/saltcorn/saltcorn
-      - run: cd ../saltcorn && npm install --legacy-peer-deps && npm run tsc
-        env:
-          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "true"
-          SKIP_DOCKER_IMAGE_INSTALL: "true"
-      - run: cd ../saltcorn && packages/saltcorn-cli/bin/saltcorn add-schema -f
+      - run: npm install -g @saltcorn/cli@next
         env:
           CI: true
           PGHOST: localhost
           PGUSER: postgres
           PGDATABASE: saltcorn_test
           PGPASSWORD: postgres
-      - run: ../saltcorn/packages/saltcorn-cli/bin/saltcorn dev:plugin-test -d $PWD -f backup.zip
+      - run: saltcorn info
+        env:
+          CI: true
+          PGHOST: localhost
+          PGUSER: postgres
+          PGDATABASE: saltcorn_test
+          PGPASSWORD: postgres
+      - run: saltcorn add-schema -f
+        env:
+          CI: true
+          PGHOST: localhost
+          PGUSER: postgres
+          PGDATABASE: saltcorn_test
+          PGPASSWORD: postgres
+      - run: saltcorn dev:plugin-test -d $PWD -f backup.zip
         env:
           CI: true
           PGHOST: localhost

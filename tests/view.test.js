@@ -27,7 +27,7 @@ describe("statistics plugin tests", () => {
     const books = Table.findOne({ name: "books" });
     const dbCount = await books.countRows();
     expect(result).toBe(
-      `<div><span class="count_books">${dbCount}</span></div>`
+      `<div><span class="count_books">${dbCount}</span></div>`,
     );
   });
 
